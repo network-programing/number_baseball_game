@@ -1,15 +1,18 @@
 #include "serv_func.h"
+
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-
-int make_server_socket(int portnum)
-{
-	return make_server_socket_q(portnum, BACKLOG);
-}
-
-
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <pthread.h>
+#include <signal.h>
 
 int make_server_socket_q(int portnum, int backlog)
 {
@@ -39,3 +42,10 @@ int make_server_socket_q(int portnum, int backlog)
 		return -1;
 	return sock_id;
 }
+
+
+int make_server_socket(int portnum)
+{
+	return make_server_socket_q(portnum, BACKLOG);
+}
+

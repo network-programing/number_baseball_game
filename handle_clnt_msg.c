@@ -1,6 +1,9 @@
-#include "clnt.h"
+#include "clnt_info.h"
 #include "common.h"
 #include "message.h"
+
+#include <string.h>
+#include <stdio.h>
 
 
 /*  clinet is in the gaming room    */
@@ -37,7 +40,7 @@ void handle_clnt_msg_in_gaming(struct room room[], int* room_num, struct client*
         handle_clnt_msg_in_gaming_chatingMode(clnt, msg);
     }
     else{
-        sendMessageUser(error_msg, clnt);
+        sendMessageUser(mode_error_msg, clnt);
     }
 }
 
@@ -53,10 +56,9 @@ void handle_clnt_msg_in_wating_chatingMode(){
 void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, struct client* clnt, struct message msg){
     char option[40], buf[BUF_SIZE];
     struct message serv_msg, error_msg = {"error", "write right format\n"};
-    struct room* room;
     int room_idx, room_id, num;
 
-    printf("handle %s's %s\n", clnt->name, msg.content);
+    printf("handle %s's %s\n", clnt->info.name, msg.content);
 
     sscanf(msg.content, "%s", option);
 
@@ -68,32 +70,31 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
         }
 
         room_idx = makeRoom(room, room_num, buf);
-        *room_num = room_idx;
         addClientToRoom(&(room[room_idx]), clnt);
     }
     //  print gaming room list
     else if(strcmp(option, "list") == 0){
-        roomList(struct room[], int room_num, clnt, serv_msg.content);
+        roomList(room, *room_num, clnt, serv_msg.content);
         sendMessageUser(serv_msg, clnt);
     }
     //  enter gaming room
     else if(strcmp(option, "enter") == 0){
-        if((num = sscanf(msg.content, "%s %d", option, room_id)) != 2){
+        if((num = sscanf(msg.content, "%s %d", option, &room_id)) != 2){
             sendMessageUser(error_msg, clnt);
             return;
         }
 
-        room_idx = findRoom(room, room_num, room_id);
+        room_idx = findRoom(room, *room_num, room_id);
         addClientToRoom(&(room[room_idx]), clnt);
     }
     //  info gaming room
     else if(strcmp(option, "info") == 0){
-        if((num = sscanf(msg.content, "%s %d", option, room_id)) != 2){
+        if((num = sscanf(msg.content, "%s %d", option, &room_id)) != 2){
             sendMessageUser(error_msg, clnt);
             return;
         }
 
-        room_idx = findRoom(room, room_num, room_id);
+        room_idx = findRoom(room, *room_num, room_id);
         specificRoomInfo(&(room[room_idx]), serv_msg.content);
     }
     //  print option that client can choose in wating room
@@ -102,7 +103,7 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
     }
     //  cannot find option
     else{
-        snedMessageUser(error_msg, clnt);
+        sendMessageUser(error_msg, clnt);
     }
 }
 
