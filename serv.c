@@ -1,33 +1,59 @@
-#include "clnt.h"
+#include "clnt_info.h"
 #include "common.h"
 #include "message.h"
 #include "room.h"
 #include "serv_func.h"
+#include "struct.h"
+#include "handle_clnt_msg.h"
+#include "struct.h"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <pthread.h>
+#include <signal.h>
 
 
-void error_handle(char* msg, int exitnum);
+#define ROOM_MAX 100
+#define CLIENT_MAX 300
 
 
+struct room room[ROOM_MAX];
+int room_num = 0;
+
+struct client clnt[CLIENT_MAX];
+int clnt_num = 0;
 
 
-
+void error_handle(char* msg, int exitnum){
+	fprintf(stderr, "msg");
+	exit(exitnum);
+}
 
 void *handle_clnt(void* arg){
-    struct client* clnt = (struct client*) arg;
+    struct client* c = (struct client*) arg;
     struct message msg;
-    struct buf1[100], buf2[100];
     int str_len;
 
-    sendWaitingRoomMenu(clnt);
+    sendWaitingRoomMenu(c);
 
-    while((str_len = read(clnt->socket, &msg, sizeof(msg)))){
+    while((str_len = read(c->socket, &msg, sizeof(msg)))){
         /* client is in the gaming room */
-        if(isInTheGamingRoom(clnt)){
-            handle_clnt_msg_in_gaming(clnt, msg);
+        if(isInTheGamingRoom(c)){
+            handle_clnt_msg_in_gaming(room, &room_num, c, msg);
         }
         /* client is in the wating room */
         else{
-            handle_clnt_msg_in_waiting(clnt, msg);
+            handle_clnt_msg_in_waiting(room, &room_num, c, msg);
         }
     }
 }
@@ -36,7 +62,7 @@ void *handle_clnt(void* arg){
 int main(int argc, char* argv[]){
     int serv_sock, clnt_sock;
 	char name[200];	
-	struct client* client;
+	struct client* new_clnt;
 	struct message msg;
 
 	pthread_t t_id;			
@@ -45,9 +71,7 @@ int main(int argc, char* argv[]){
 	if(argc != 2)
 		error_handle("Usage : 실행파일 <PORT>\n", 1);
 
-	signal(SIGPIPE, sig_handler);
-
-	pthread_mutex_init(&lock, NULL);	
+	//signal(SIGPIPE, sig_handler);
 
 	// 서버 소켓 만들기
 	serv_sock = make_server_socket(atoi(argv[1]));
@@ -65,23 +89,17 @@ int main(int argc, char* argv[]){
 		read(clnt_sock, &msg, sizeof(struct message));
 
 		strcpy(name, msg.content);
-		client = addClient(clnt_sock, name);
-		client->money = 1000;
+		new_clnt = addClient(clnt, &clnt_num, clnt_sock, name);
 
-		//pthread_create(&serv_id, NULL, handle_serv, (void*)client);
-		pthread_create(&t_id, NULL, handle_clnt, (void*)client);
+		//pthread_create(&serv_id, NULL, handle_serv, (void*)new_clnt);
+		pthread_create(&t_id, NULL, handle_clnt, (void*)new_clnt);
 
 		//pthread_detach(serv_id);
 		pthread_detach(t_id);
 
-		printf("%s is connected\n", client->name);
+		printf("%s is connected\n", clnt->info.name);
 	}
 	close(serv_sock);
 
 	return 0;
-}
-
-void error_handle(char* msg, int exitnum){
-	fprintf(stderr, "msg");
-	exit(exitnum);
 }

@@ -2,10 +2,16 @@
 #include "message.h"
 #include <pthread.h>
 #include <string.h>
-
+#include <stdio.h>
 
 pthread_mutex_t room_lock = PTHREAD_MUTEX_INITIALIZER;
 
+
+/* 
+    
+    room functions
+    
+*/
 
 int sendMessageToRoom(struct message msg, struct room* room){
     int i;
@@ -15,42 +21,13 @@ int sendMessageToRoom(struct message msg, struct room* room){
 }
 
 
-int findRoom(struct room[], int room_num, int room_id){
-    int i;
-
-    for(int i=0; i<room_num; i++){
-        if(room[i]->id == room_id){
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int removeRoom(struct room[], int room_num, int room_id){
-/* if cannot find room then return -1
-    if find room, then return new room_num */
-    int idx, i;
-
-    idx = findRoom(room, room_num, room_id);
-    if(idx == -1) return -1;
-
-    pthread_mutex_lock(&room_lock);
-    for(i=idx; i<room_num-1; i++){
-        room[i] = room[i+1];
-    }
-    pthread_mutex_unlock(&room_lock);
-
-    return room_num -1;
-}
-
 
 int addClientToRoom(struct room* room, struct client* clnt){
     if(room->clnt_num >= MAX_PERSON) return -1;
 
     room->clnt[room->clnt_num] = clnt;
     room->clnt_num += 1;
-    clnt->room_id = room->id;
+    clnt->room->id = room->id;
 
     return TRUE;
 }
@@ -59,7 +36,7 @@ int findClientInRoom(struct room* room, struct client* clnt){
     int i;
 
     for(i=0; i<room->clnt_num; i++){
-        if(room->clnt[i]->id == clnt->id)
+        if(room->clnt[i]->socket == clnt->socket)
             return i;
     }
 
@@ -78,54 +55,36 @@ int removeClientInRoom(struct room* room, struct client* clnt){
     }
 
     room->clnt_num -= 1;
-    client->room = NULL;
+    clnt->room = NULL;
 }
 
 
-int makeRoom(struct room[], int room_num, char* room_name){
-    /* return new room_num */
-
-    room[room_num]->id = room_num + 1;
-    strcpy(room[room_num]->name, name);
-
-    return room_num + 1;
-}
 
 
-void statusToString(int status, char status[]){
+void statusToString(int status, char str[]){
     if(status == ROOM_IS_GAMING)
-        strcpy(status, "Gaming");
+        strcpy(str, "Gaming");
     else if(status == ROOM_IS_WAITING)
-        strcpy(status, "Wating");
+        strcpy(str, "Wating");
 }
 
 
 void toStringRoom(struct room* room, char str[]){
-    char str[BUF_SIZE], status[20], buf[40];
+    char status[20], buf[40];
     int len;
 
     sprintf(str, "[room name] : ");
-    strcat(str, room[i]->name);
+    strcat(str, room->name);
     
     strcat(str, ", [status] : ");
-    strcat(str, statusToString(room->status, status));
+    statusToString(room->status, status);
+    strcat(str, status);
         
     sprintf(buf, "%d / %d\n", room->clnt_num, MAX_PERSON);
     strcat(str, buf);
 }
 
 
-void roomList(struct room[], int room_num, struct client* clnt, char* room_list){
-    int i;
-    char room_info[BUF_SIZE];
-
-    sprintf(room_list, "<------room------>");
-    
-    for(i=0; i<room_num; i++){
-        room_info = toStringRoom(&(room[i]));
-        strcat(room_list, room_info);
-    }
-}
 
 
 void sendWaitingRoomMenu(struct client* clnt){
@@ -137,7 +96,7 @@ void sendWaitingRoomMenu(struct client* clnt){
 	strcat(msg.content, "[help]: print menu\n");
 	strcat(msg.content, "[quit]: Quit\n");
 
-	sendMessageUser(msg, clnt->sock);
+	sendMessageUser(msg, clnt);
 }
 
 void sendGamingRoomMenu(struct client* clnt){
@@ -150,7 +109,7 @@ void sendGamingRoomMenu(struct client* clnt){
 	strcat(msg.content, "[help]: print menu\n");
 	strcat(msg.content, "[quit]: Quit thist game room\n");
 
-	sendMessageUser(msg, clnt->socket);
+	sendMessageUser(msg, clnt);
 
 }
 
@@ -174,4 +133,70 @@ int specificRoomInfo(struct room* room, char* str){
         clnt_to_str(room->clnt[i], buf);
         strcat(str, buf);
     }
+}
+
+
+
+
+/* 
+
+    room ary functions 
+
+*/
+
+int removeRoom(struct room room[], int* room_num, int room_id){
+/* if cannot find room then return -1
+    if find room, then return new room_num */
+    int idx, i;
+
+    idx = findRoom(room, *room_num, room_id);
+    if(idx == -1) return -1;
+
+    pthread_mutex_lock(&room_lock);
+    for(i=idx; i < *room_num-1; i++){
+        room[i] = room[i+1];
+    }
+    *room_num -= 1;
+    pthread_mutex_unlock(&room_lock);
+
+    return *room_num;
+}
+
+
+int makeRoom(struct room room[], int* room_num, char* room_name){
+    /* return new room_num */
+
+    pthread_mutex_lock(&room_lock);
+    (&room[*room_num])->id = *room_num + 1;
+    strcpy((&(room[*room_num]))->name, room_name);
+    *room_num += 1;
+    pthread_mutex_unlock(&room_lock);
+
+    return *room_num;
+}
+
+
+void roomList(struct room room[], int room_num, struct client* clnt, char* room_list){
+    int i;
+    char room_info[BUF_SIZE];
+
+    sprintf(room_list, "<------room------>");
+    
+    for(i=0; i<room_num; i++){
+        toStringRoom(&(room[i]), room_info);
+        strcat(room_list, room_info);
+    }
+}
+
+
+int findRoom(struct room room[], int room_num, int room_id){
+    int i;
+
+    for(int i=0; i<room_num; i++){
+        if(room[i].id == room_id){
+            return i;
+        }
+    }
+
+    return -1;
 }
