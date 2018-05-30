@@ -35,7 +35,7 @@ int clnt_num = 0;
 
 
 void error_handle(char* msg, int exitnum){
-	fprintf(stderr, "msg");
+	fprintf(stderr, "%s\n", msg);
 	exit(exitnum);
 }
 
@@ -43,6 +43,7 @@ void *handle_clnt(void* arg){
     struct client* c = (struct client*) arg;
     struct message msg;
     int str_len;
+	struct room* test_room;
 
     sendWaitingRoomMenu(c);
 
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]){
 	// 서버 소켓 만들기
 	serv_sock = make_server_socket(atoi(argv[1]));
 	if(serv_sock == -1)
-		error_handle("server sock failed\n", 1);
+		error_handle("server sock failed", 1);
 
 	srand((long)time(NULL));
 

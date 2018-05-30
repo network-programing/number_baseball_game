@@ -27,7 +27,7 @@ serv.o : serv.c serv_func.o room.o message.o handle_clnt_msg.o clnt_info.o
 
 
 clnt.o : clnt.c message.o
-	gcc -c -o clnt.c
+	gcc -o clnt.o clnt.c
 
 
 clean :

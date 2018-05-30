@@ -1,5 +1,6 @@
 #include "clnt_info.h"
 #include "struct.h"
+
 #include <string.h>
 #include <pthread.h>
 #include <stdio.h>

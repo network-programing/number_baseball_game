@@ -11,6 +11,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <signal.h>
+
 #include "message.h"
 
 #define SIZE_MODE 20
@@ -139,7 +140,10 @@ int main(int argc, char* argv[]){
 		errorHandle("Usage : 실행파일 <IP> <PORT>\n", 1);
 
 	sock_fd = connect_to_server(argv[1], atoi(argv[2]));
-
+	if(sock_fd == -1){
+		printf("cannot connect to server\n");
+		exit(1);
+	}
 
 	signal(SIGINT, keycontrol);
 
