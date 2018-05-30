@@ -4,20 +4,9 @@
 
 #define MODE_SIZE 100
 
-#define ROOM_IS_GAMING 1001
-#define ROOM_IS_WAITING 1002
+#define ROOM_IS_START 1001
+#define ROOM_IS_NOT_START 1002
 #define MAX_PERSON 3
-
-
-/* room */
-struct room{
-    int id;
-    char name[BUF_SIZE];
-    int status;
-    struct client* clnt[MAX_PERSON];
-    int clnt_num;
-};
-
 
 
 /* client */
@@ -31,8 +20,20 @@ struct info{
 struct client{
     int socket;
     struct info info;
-    struct room* room;
+    void* room;
 };
+
+
+/* room */
+struct room{
+    int id;
+    char name[BUF_SIZE];
+    int status;
+    void* clnt[MAX_PERSON];
+    int clnt_num;
+};
+
+
 
 
 

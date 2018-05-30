@@ -1,0 +1,1 @@
+gcc -o clnt.o clnt.c -lpthread

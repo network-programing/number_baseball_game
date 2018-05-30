@@ -11,6 +11,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <signal.h>
+
 #include "message.h"
 
 #define SIZE_MODE 20
@@ -77,21 +78,14 @@ void* send_msg(void* arg)
 
 	while(1)
 	{
-		usleep(500000);
 		fgets(msg.content, SIZE_CONTENT, stdin);
+		usleep(500000);
+
 		msg.content[strlen(msg.content)-1] = '\0';		
 		strcpy(msg.mode, mode[mode_num]);
 
-		
-		if(strcmp(msg.content, "quit") == 0 || strcmp(msg.content, "Quit")==0){
-			close(sock);
-			printf("접속을 종료합니다.\n");
-			exit(0);
-		}
-
-		usleep(500000);
 		write(sock, &msg, sizeof(msg));
-
+		usleep(500000);
 	}
 
 	return NULL;
@@ -105,11 +99,18 @@ void* recv_msg(void* arg){
 	char buf[100];
 
 	while(1){
-		usleep(500000);
 		read(sock, &msg, sizeof(msg));
-
 		usleep(500000);
+		/*
+		if(strcmp(msg.content, "end") == 0 || strcmp(msg.content, "End")==0){
+			close(sock);
+			printf("접속을 종료합니다.\n");
+			exit(0);
+		}
+		*/
+
 		fputs(msg.content, stdout);
+		usleep(500000);
 	}
 
 	return NULL;
@@ -139,7 +140,10 @@ int main(int argc, char* argv[]){
 		errorHandle("Usage : 실행파일 <IP> <PORT>\n", 1);
 
 	sock_fd = connect_to_server(argv[1], atoi(argv[2]));
-
+	if(sock_fd == -1){
+		printf("cannot connect to server\n");
+		exit(1);
+	}
 
 	signal(SIGINT, keycontrol);
 

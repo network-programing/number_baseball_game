@@ -1,6 +1,7 @@
 #include "clnt_info.h"
 #include "common.h"
 #include "message.h"
+#include "handle_clnt_msg.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -8,24 +9,32 @@
 
 /*  clinet is in the gaming room    */
 void handle_clnt_msg_in_gaming_chatingMode(struct client* clnt, struct message msg){
-
-    sendMessageToRoom(msg, clnt->room);
+    printf("msg is %s", msg.content);
+    sendMessageToRoom(msg, (struct room*) clnt->room);
 }
 
 
 void handle_clnt_msg_in_gaming_selectMode(struct room room[], int* room_num, struct client* clnt, struct message msg){
     char option[40], buf[BUF_SIZE];
     int room_idx, room_id;
+    struct room* clnt_room;
 
-    if(strcmp(buf, "quit") == 0){
-        room_id = clnt->room->id;
-        removeClientInRoom(clnt->room, clnt);
+    printf("[%s] send %s\n", clnt->info.name, msg.content);
+
+    sscanf(msg.content, "%s", option);
+
+    if(strcmp(option, "quit") == 0){
+        clnt_room = (struct room*) clnt->room;
+        room_id = clnt_room->id;
+        removeClientInRoom(clnt_room, clnt);
 
         if(room->clnt_num == 0)
         {
-            *room_num = removeRoom(room, room_num, room_id);
+            removeRoom(room, room_num, room_id);
             printf("room[ id : %d ] is closed\n", room_id);
         }
+    }else if(strcmp(option, "help") == 0){
+        sendGamingRoomMenu(clnt);
     }
 }
 
@@ -58,7 +67,7 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
     struct message serv_msg, error_msg = {"error", "write right format\n"};
     int room_idx, room_id, num;
 
-    printf("handle %s's %s\n", clnt->info.name, msg.content);
+    printf("[%s] send %s\n", clnt->info.name, msg.content);
 
     sscanf(msg.content, "%s", option);
 
@@ -70,7 +79,15 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
         }
 
         room_idx = makeRoom(room, room_num, buf);
+        
         addClientToRoom(&(room[room_idx]), clnt);
+
+        sprintf(serv_msg.content, "[%s] is enter [%s] room!\n\n", clnt->info.name, buf);
+        sendMessageToRoom(serv_msg, (struct room*)clnt->room);
+        
+        sendGamingRoomMenu(clnt);
+
+        printf("[num : %d] [name : %s] room is maked\n", room_idx, room[room_idx].name);
     }
     //  print gaming room list
     else if(strcmp(option, "list") == 0){
@@ -85,7 +102,24 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
         }
 
         room_idx = findRoom(room, *room_num, room_id);
-        addClientToRoom(&(room[room_idx]), clnt);
+        if(room_idx == -1){
+            sprintf(error_msg.content, "%d room not existed\n", room_id);
+            sendMessageUser(error_msg, clnt);
+            return;
+        }
+
+        if(addClientToRoom(&(room[room_idx]), clnt) == -1){
+            sprintf(error_msg.content, "%d room is fulled\n", room_id);
+            sendMessageUser(error_msg, clnt);
+            return;
+        }
+
+        sprintf(serv_msg.content, "[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
+        sendMessageToRoom(serv_msg, (struct room*)clnt->room);
+
+        sendGamingRoomMenu(clnt);
+
+        printf("[clnt %s] is entered [num : %d] [name : %s] room\n", clnt->info.name, room[room_idx].id, room[room_idx].name);
     }
     //  info gaming room
     else if(strcmp(option, "info") == 0){
@@ -95,7 +129,15 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
         }
 
         room_idx = findRoom(room, *room_num, room_id);
+        if(room_idx == -1){
+            sprintf(error_msg.content, "%d room not existed\n", room_id);
+            sendMessageUser(error_msg, clnt);
+            return;
+        }
+
         specificRoomInfo(&(room[room_idx]), serv_msg.content);
+
+        sendMessageUser(serv_msg, clnt);
     }
     //  print option that client can choose in wating room
     else if(strcmp(option, "help") == 0){
@@ -110,7 +152,6 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
 
 void handle_clnt_msg_in_waiting(struct room room[], int* room_num, struct client* clnt, struct message msg){
     struct message mode_error_msg = {"error", "mode is not matched\n"};
-
 
     if(strcmp(msg.mode, "select") == 0){
         handle_clnt_msg_in_wating_selectMode(room, room_num, clnt, msg);
