@@ -21,7 +21,7 @@ int sendMessageToRoom(struct message msg, struct room* room){
     struct client* clnt;
 
     for(i=0; i<room->clnt_num; i++){
-        sendMessageUser(msg, (struct client*)room->clnt[i]);
+        sendMessageUser(msg, room->clnt[i]);
     }
 }
 
@@ -141,6 +141,8 @@ int specificRoomInfo(struct room* room, char* str){
         clnt_to_str(room->clnt[i], buf);
         strcat(str, buf);
     }
+
+    strcat(str, "\n");
 }
 
 
@@ -206,7 +208,7 @@ int makeRoom(struct room room[], int* room_num, char* room_name){
 
 void roomList(struct room room[], int room_num, struct client* clnt, char* room_list){
     int i;
-    char room_info[BUF_SIZE];
+    char room_info[BUF_SIZE], buf[30];
 
     sprintf(room_list, "<------room------>\n");
     if(room_num == 0){
@@ -215,6 +217,8 @@ void roomList(struct room room[], int room_num, struct client* clnt, char* room_
     }
 
     for(i=0; i<room_num; i++){
+        sprintf(buf, "[number] : %d, ", i);
+        strcat(room_list, buf);
         toStringRoom(&(room[i]), room_info);
         strcat(room_list, room_info);
         strcat(room_list, "\n");
@@ -222,7 +226,12 @@ void roomList(struct room room[], int room_num, struct client* clnt, char* room_
 }
 
 
-int findRoom(struct room room[], int room_num, int room_id){
+int findRoom(struct room room[], int room_num, int room_id)
+/*
+    return index of room
+    if faild, then return -1
+*/
+{
     int i;
 
     for(int i=0; i<room_num; i++){

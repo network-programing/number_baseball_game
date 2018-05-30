@@ -20,9 +20,9 @@ void clnt_to_str(struct client *clnt, char str[]){
     int str_len;
     char buf[50];
 
-    sprintf(str, "%s client's info\n", clnt->info.name);
+    sprintf(str, "--------[%s] client's info-------\n", clnt->info.name);
     
-    sprintf(buf, "%d wins / %d loses\n", clnt->info.win, clnt->info.lose);
+    sprintf(buf, "[%3d] wins / [%3d] loses\n", clnt->info.win, clnt->info.lose);
     strcat(str, buf);
 }
 
