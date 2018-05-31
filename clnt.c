@@ -11,6 +11,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include "message.h"
 
@@ -21,6 +22,7 @@ pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 int mode_num = 0;	//mode number
+int pre_mode_num;
 char mode[5][SIZE_MODE] = {"new", "select", "chat"};	//서버에게 보낼 클라이언트의 메뉴
 int money;
 
@@ -55,6 +57,8 @@ int connect_to_server(char *host, int portnum)
 
 	return sock;
 }
+
+
 
 
 /*	서버에게 메시지를 보내는 함수	*/
@@ -127,6 +131,100 @@ void* recv_msg(void* arg){
 	return NULL;
 }
 
+
+void handleUserInput(struct message msg, int sock, char* name){
+	char buf[300];
+	
+	/* if send mode is chat */
+	if(strcmp(msg.mode, mode[2]) == 0){
+		//if(strcmp(msg.content, "\n"))
+
+		strcpy(buf, msg.content);
+		sprintf(msg.content, "user [%s] : %s\n", name, buf);
+	}
+
+	write(sock, &msg, sizeof(msg));
+}
+
+
+void handleServerMessage(struct message msg){
+	/*
+		if(strcmp(msg.content, "end") == 0 || strcmp(msg.content, "End")==0){
+			close(sock);
+			printf("접속을 종료합니다.\n");
+			exit(0);
+		}
+	*/
+
+	write(0, msg.content, strlen(msg.content));
+}
+
+
+void io_handle(int sock){
+	fd_set reads, temps;
+	int result;
+	struct message msg;
+	int str_len;
+	struct timeval timeout;
+	char buf[300], name[50];
+
+
+	// 접속할 이름 입력
+	printf("이름을 입력하세요.\n");
+	mode_num = 0;
+	strcpy(msg.mode, mode[mode_num]);
+	fgets(msg.content, SIZE_CONTENT, stdin);
+	msg.content[strlen(msg.content)-1] = '\0';
+
+	//이름 서버에게 전달
+	write(sock, &msg, sizeof(struct message));
+	strcpy(name, msg.content);
+
+	mode_num = 1;	// 처음은 SELECT 모드
+	printf("\n선택모드가 되었습니다.\n선택모드, 채팅모드간 전환하려면 CTRL+C를 입력하세요\n");
+
+
+	FD_ZERO(&reads);
+	FD_SET(0, &reads);
+	FD_SET(sock, &reads);
+
+	while(1){
+		temps = reads;
+
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 300000;	/* 0.3 sec timeout */
+
+		pre_mode_num = mode_num;
+
+		result = select(sock + 1, &temps, 0, 0, &timeout);
+
+		if(result == -1){
+			/* if select error is not occured by SIGINT */
+			if(pre_mode_num == mode_num)
+				errorHandle("select() error", 1);
+		}else if(result > 0){
+			/* read client input */
+			if(FD_ISSET(0, &temps))
+			{
+				memset(&msg, 0, sizeof(msg));
+				read(0, msg.content, SIZE_CONTENT);
+
+				msg.content[strlen(msg.content)-1] = '\0';		
+				strcpy(msg.mode, mode[mode_num]);
+
+				handleUserInput(msg, sock, name);
+			}
+			/* read server message */
+			else if(FD_ISSET(sock, &temps)){
+				read(sock, &msg, sizeof(msg));
+
+				handleServerMessage(msg);
+			}
+		}
+	}
+}
+
+
 void keycontrol(int sig)
 /*
 	클라이언트가 SIGINT를 누르면 select와 chat이 번갈아 가면서 바뀜
@@ -158,10 +256,12 @@ int main(int argc, char* argv[]){
 
 	signal(SIGINT, keycontrol);
 
-	pthread_create(&snd_thread, NULL, send_msg, (void*)&sock_fd);	
-	pthread_create(&rcv_thread, NULL, recv_msg, (void*)&sock_fd);	
-	pthread_join(snd_thread, NULL);	
-	pthread_join(rcv_thread, NULL);	
+	io_handle(sock_fd);
+
+	//pthread_create(&snd_thread, NULL, send_msg, (void*)&sock_fd);	
+	//pthread_create(&rcv_thread, NULL, recv_msg, (void*)&sock_fd);	
+	//pthread_join(snd_thread, NULL);	
+	//pthread_join(rcv_thread, NULL);	
 	close(sock_fd); 
 
 

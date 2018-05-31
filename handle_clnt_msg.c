@@ -116,7 +116,7 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
             return;
         }
 
-        sprintf(serv_msg.content, "[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
+        sprintf(serv_msg.content, "\n[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
         sendMessageToRoom(serv_msg, (struct room*)clnt->room);
 
         sendGamingRoomMenu(clnt);
