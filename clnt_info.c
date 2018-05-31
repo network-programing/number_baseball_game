@@ -5,7 +5,9 @@
 
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 
 pthread_mutex_t clnt_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -30,11 +32,66 @@ void clnt_to_str(struct client *clnt, char str[]){
 }
 
 
+int set_nonblock_socket(int fd){
+    int flags;
+    if((flags = fcntl(fd, F_GETFL, 0)) == -1){
+        return -1;
+    }
+
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    return 0;
+}
+
+
+int saveClientInfo(struct client* clnt){
+    FILE* fp;
+    char fileName[100];
+    int fd;
+    
+    /* file open */
+    sprintf(fileName, "%s", clnt->info.name);
+    strcat(fileName, ".bin");
+
+    if((fp = fopen(fileName, "wb")) == NULL){
+        return -1;
+    }
+
+    fd = fileno(fp);
+    
+    /*
+    if(set_nonblock_socket(fd) == -1)
+        return -1;
+    */
+
+    write(fd, &(clnt->info), sizeof(struct info));
+
+    close(fd);
+
+    return 0;
+}
+
 
 struct info getClientInfo(char* name){
     struct info info;
+    FILE* fp;
+    char fileName[100];
+
+    /* read user info file */
+    sprintf(fileName, "%s", name);
+    strcat(fileName, ".bin");
+
+    if((fp = fopen(fileName, "rb")) == NULL){
+        /* if new user */
+        info.win = 0;
+        info.lose = 0;
+    }else{
+        /* user */
+        fread(&info, sizeof(struct info), 1, fp);
+        fclose(fp);
+    }
 
     strcpy(info.name, name);
+
 
     return info; 
 }

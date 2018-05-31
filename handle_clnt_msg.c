@@ -32,7 +32,7 @@ void handle_clnt_msg_in_gaming_selectMode(struct room room[], int* room_num, str
         sendMessageToRoom(serv_msg ,(struct room*)clnt->room);
 
         removeClientInRoom(clnt_room, clnt);
-        
+
         sendWaitingRoomMenu(clnt);
 
         if(clnt_room->clnt_num == 0)

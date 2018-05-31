@@ -90,6 +90,7 @@ int main(int argc, char* argv[]){
 		read(clnt_sock, &msg, sizeof(struct message));
 
 		strcpy(name, msg.content);
+
 		new_clnt = addClient(clnt, &clnt_num, clnt_sock, name);
 
 		//pthread_create(&serv_id, NULL, handle_serv, (void*)new_clnt);

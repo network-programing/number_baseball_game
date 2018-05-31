@@ -8,7 +8,12 @@
 
 /* clnt info functions */
 void clnt_to_str(struct client* clnt, char str[]);
+
 struct room* getRoom(struct client* clnt);
+
+int saveClientInfo(struct client* clnt);
+
+struct info getClientInfo(char* name);
 
 
 /* clnt info ary functions */
