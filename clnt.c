@@ -218,6 +218,10 @@ void io_handle(int sock){
 			else if(FD_ISSET(sock, &temps)){
 				read(sock, &msg, sizeof(msg));
 
+				if(strcmp(msg.mode, "quit") == 0){
+					break;
+				}
+
 				handleServerMessage(msg);
 			}
 		}
