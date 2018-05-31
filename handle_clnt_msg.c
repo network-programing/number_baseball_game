@@ -58,8 +58,10 @@ void handle_clnt_msg_in_gaming(struct room room[], int* room_num, struct client*
 
 
 /*  clinet is in the wating room    */
-void handle_clnt_msg_in_wating_chatingMode(){
-    /* not yet */
+
+void handle_clnt_msg_in_wating_chatingMode(struct client clnt[], int *clnt_num, struct message msg){
+
+    sendMsgToNotInTheRoom(clnt, *clnt_num, msg);
 }
 
 void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, struct client* clnt, struct message msg){
@@ -150,14 +152,14 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
 }
 
 
-void handle_clnt_msg_in_waiting(struct room room[], int* room_num, struct client* clnt, struct message msg){
+void handle_clnt_msg_in_waiting(struct room room[], int* room_num, struct client clnt_ary[], int* clnt_num, struct client* clnt, struct message msg){
     struct message mode_error_msg = {"error", "mode is not matched\n"};
 
     if(strcmp(msg.mode, "select") == 0){
         handle_clnt_msg_in_wating_selectMode(room, room_num, clnt, msg);
     }
     else if(strcmp(msg.mode, "chat") == 0){
-        handle_clnt_msg_in_wating_chatingMode();
+        handle_clnt_msg_in_wating_chatingMode(clnt_ary, clnt_num, msg);
     }
     else{
         sendMessageUser(mode_error_msg, clnt);

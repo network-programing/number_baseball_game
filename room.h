@@ -22,6 +22,7 @@ int isInTheGamingRoom(struct client* clnt);
 
 int specificRoomInfo(struct room* room, char* str);
 
+struct client* getClient(struct room* room, int index);
 
 
 /* room ary functions */

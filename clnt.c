@@ -60,7 +60,7 @@ void* send_msg(void* arg)
 	int sock = *((int*)arg);
 	struct message msg;
 	int m;
-	char option[20];
+	char option[20], buf[300], name[100];
 
 	// 접속할 이름 입력
 	printf("이름을 입력하세요.\n");
@@ -71,10 +71,11 @@ void* send_msg(void* arg)
 
 	//이름 서버에게 전달
 	write(sock, &msg, sizeof(struct message));
+	strcpy(name, msg.content);
 	usleep(500000);
 
 	mode_num = 1;	// 처음은 SELECT 모드
-	printf("선택모드가 되었습니다.\n선택모드, 채팅모드간 전환하려면 CTRL+C를 입력하세요\n");
+	printf("\n선택모드가 되었습니다.\n선택모드, 채팅모드간 전환하려면 CTRL+C를 입력하세요\n");
 
 	while(1)
 	{
@@ -83,6 +84,14 @@ void* send_msg(void* arg)
 
 		msg.content[strlen(msg.content)-1] = '\0';		
 		strcpy(msg.mode, mode[mode_num]);
+
+		/* if send mode is chat */
+		if(strcmp(msg.mode, mode[2]) == 0){
+			//if(strcmp(msg.content, "\n"))
+
+			strcpy(buf, msg.content);
+			sprintf(msg.content, "user [%s] : %s", name, buf);
+		}
 
 		write(sock, &msg, sizeof(msg));
 		usleep(500000);
@@ -124,10 +133,10 @@ void keycontrol(int sig)
 	if(sig == SIGINT){
 		if(mode_num == 1){
 			mode_num = 2;
-			printf("채팅모드로 변경하였습니다.\n");
+			printf("\n채팅모드로 변경하였습니다.\n");
 		}else if(mode_num == 2){
 			mode_num = 1;
-			printf("선택모드로 변경하였습니다.\n옵션을 보려면 -help를 입력하세요\n");
+			printf("\n선택모드로 변경하였습니다.\n옵션을 보려면 -help를 입력하세요\n");
 		}
 	} 
 }
