@@ -1,3 +1,3 @@
 network programming project
 
-number baseball game
+snake game
