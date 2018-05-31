@@ -97,9 +97,14 @@ void toStringRoom(struct room* room, char str[]){
 void sendWaitingRoomMenu(struct client* clnt){
 	struct message msg;
 
-	sprintf(msg.content, "<< Waiting Room Menu >>\n[create] [name]: Create Room\n[list]: List Room\n");	
+	sprintf(msg.content, "<< Waiting Room Menu >>\n");
+    strcat(msg.content, "[create] [name]: Create Room\n");
+    strcat(msg.content, "[list]: List Room\n");	
 	strcat(msg.content, "[enter] [room_number]: Enter Room\n");
 	strcat(msg.content, "[info] [room_number] : Info Room\n");
+    strcat(msg.content, "[add] [name] : add friend\n");
+    strcat(msg.content, "[f_list] : list friend list\n");
+    strcat(msg.content, "[chat] [name] : chat someone\n");
 	strcat(msg.content, "[help]: print menu\n");
 	strcat(msg.content, "[quit]: Quit\n");
 
@@ -110,9 +115,11 @@ void sendGamingRoomMenu(struct client* clnt){
 	struct message msg;
 
 	sprintf(msg.content, "<< Gaming Room Menu >>\n");	
-	strcat(msg.content, "[stand]: Stand\n");
-	strcat(msg.content,  "[hit]: Hit\n");
-	strcat(msg.content, "[betting] [money] : Betting money\n");
+    strcat(msg.content, "[start]: start game\n");
+	strcat(msg.content, "[invite] [friend_name]: invite friend\n");
+    strcat(msg.content, "[add] [name] : add friend\n");
+    strcat(msg.content, "[chat] [name] : chat someone\n");
+    strcat(msg.content, "[f_list] : list friend list\n");
 	strcat(msg.content, "[help]: print menu\n");
 	strcat(msg.content, "[quit]: Quit thist game room\n");
 
@@ -140,9 +147,10 @@ int specificRoomInfo(struct room* room, char* str){
     for(i=0; i<room->clnt_num; i++){
         clnt_to_str(room->clnt[i], buf);
         strcat(str, buf);
+        strcat(str, "\n");
     }
 
-    strcat(str, "\n");
+    strcat(str, "\n\n");
 }
 
 struct client* getClient(struct room* room, int index){
@@ -185,7 +193,7 @@ int removeRoom(struct room room[], int* room_num, int room_id){
 
     pthread_mutex_lock(&room_lock);
     for(i=idx; i < *room_num-1; i++){
-        
+
         (&(room[i+1]))->id = i;
         room[i] = room[i+1];
 

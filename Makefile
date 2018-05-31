@@ -1,6 +1,9 @@
-serv_exe : clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o
-	gcc -o serv_exe.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o -lpthread
+serv_exe : friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o
+	gcc -o serv_exe.o friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o -lpthread
 
+
+friend.o : friend.c friend.h
+	gcc -c friend.c -o friend.o
 
 clnt_info.o : clnt_info.c clnt_info.h
 	gcc -c clnt_info.c -o clnt_info.o -lpthread

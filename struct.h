@@ -8,12 +8,19 @@
 #define ROOM_IS_NOT_START 1002
 #define MAX_PERSON 3
 
+#define FRIEND_MAX 100
+
+struct friend{
+    char list[FRIEND_MAX][100];
+    int num;
+};
 
 /* client */
 struct info{
     int win;
     int lose;
     char name[BUF_SIZE];
+    struct friend f_list;
 };
 
 

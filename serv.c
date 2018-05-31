@@ -33,6 +33,9 @@ int room_num = 0;
 struct client clnt[CLIENT_MAX];
 int clnt_num = 0;
 
+struct info user_info[1000];
+int info_num;
+
 
 void error_handle(char* msg, int exitnum){
 	fprintf(stderr, "%s\n", msg);
@@ -42,19 +45,20 @@ void error_handle(char* msg, int exitnum){
 void *handle_clnt(void* arg){
     struct client* c = (struct client*) arg;
     struct message msg;
-    int str_len;
+    int str_len, clnt_socket;
 	struct room* test_room;
 
+	clnt_socket = c->socket;
     sendWaitingRoomMenu(c);
 
     while((str_len = read(c->socket, &msg, sizeof(msg)))){
         /* client is in the gaming room */
         if(isInTheGamingRoom(c)){
-            handle_clnt_msg_in_gaming(room, &room_num, c, msg);
+            handle_clnt_msg_in_gaming(user_info, &info_num, room, &room_num, clnt, &clnt_num,  &c, msg, &clnt_socket);
         }
         /* client is in the wating room */
         else{
-            handle_clnt_msg_in_waiting(room, &room_num, clnt, &clnt_num, c, msg);
+            handle_clnt_msg_in_waiting(user_info, &info_num, room, &room_num, clnt, &clnt_num, &c, msg, &clnt_socket);
         }
     }
 }
@@ -81,6 +85,10 @@ int main(int argc, char* argv[]){
 
 	srand((long)time(NULL));
 
+	/* read user info */
+	readUserInfo(user_info, &info_num);
+	printf("[user info] num is %d\n", info_num);
+
 	// 계속해서 접속자 받기
 	while(1)
 	{
@@ -91,7 +99,7 @@ int main(int argc, char* argv[]){
 
 		strcpy(name, msg.content);
 
-		new_clnt = addClient(clnt, &clnt_num, clnt_sock, name);
+		new_clnt = addClient(user_info, &info_num, clnt, &clnt_num, clnt_sock, name);
 
 		//pthread_create(&serv_id, NULL, handle_serv, (void*)new_clnt);
 		pthread_create(&t_id, NULL, handle_clnt, (void*)new_clnt);
