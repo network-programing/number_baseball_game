@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
 		//pthread_detach(serv_id);
 		pthread_detach(t_id);
 
-		printf("%s is connected\n", new_clnt->info.name);
+		printf("[%s] is connected\n", new_clnt->info.name);
 	}
 	close(serv_sock);
 

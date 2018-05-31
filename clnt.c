@@ -17,11 +17,14 @@
 #define SIZE_MODE 20
 #define SIZE_CONTENT 200
 
+pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 int mode_num = 0;	//mode number
 char mode[5][SIZE_MODE] = {"new", "select", "chat"};	//서버에게 보낼 클라이언트의 메뉴
 int money;
+
+
 
 void errorHandle(char* msg, int exitnum){
 	fprintf(stderr, "%s\n", msg);
@@ -79,8 +82,9 @@ void* send_msg(void* arg)
 
 	while(1)
 	{
-		fgets(msg.content, SIZE_CONTENT, stdin);
-		usleep(500000);
+		usleep(1000000);
+		
+		while(fgets(msg.content, SIZE_CONTENT, stdin) == NULL);
 
 		msg.content[strlen(msg.content)-1] = '\0';		
 		strcpy(msg.mode, mode[mode_num]);
@@ -94,7 +98,6 @@ void* send_msg(void* arg)
 		}
 
 		write(sock, &msg, sizeof(msg));
-		usleep(500000);
 	}
 
 	return NULL;
@@ -108,8 +111,8 @@ void* recv_msg(void* arg){
 	char buf[100];
 
 	while(1){
-		read(sock, &msg, sizeof(msg));
-		usleep(500000);
+		usleep(1000000);
+		while(read(sock, &msg, sizeof(msg)) <= 0);
 		/*
 		if(strcmp(msg.content, "end") == 0 || strcmp(msg.content, "End")==0){
 			close(sock);
@@ -119,7 +122,6 @@ void* recv_msg(void* arg){
 		*/
 
 		fputs(msg.content, stdout);
-		usleep(500000);
 	}
 
 	return NULL;
