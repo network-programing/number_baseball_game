@@ -145,7 +145,11 @@ int specificRoomInfo(struct room* room, char* str){
     strcat(str, "\n");
 }
 
+struct client* getClient(struct room* room, int index){
+    if(index >= room->clnt_num) return NULL;
 
+    return (struct client*)room->clnt[index];
+}
 
 /*
 

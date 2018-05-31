@@ -1,5 +1,7 @@
 #include "clnt_info.h"
 #include "struct.h"
+#include "message.h"
+#include "room.h"
 
 #include <string.h>
 #include <pthread.h>
@@ -14,6 +16,7 @@ pthread_mutex_t clnt_lock = PTHREAD_MUTEX_INITIALIZER;
     client functions
 
 */
+
 
 
 void clnt_to_str(struct client *clnt, char str[]){
@@ -36,6 +39,12 @@ struct info getClientInfo(char* name){
     return info; 
 }
 
+
+struct room* getRoom(struct client* clnt){
+    struct room* r;
+    r = (struct room*) clnt->room;
+    return r;
+}
 
 
 /*
@@ -88,4 +97,16 @@ int removeClient(struct client clnt[], int* clnt_num, int socket){
     pthread_mutex_unlock(&clnt_lock);
 
     return *clnt_num;
+}
+
+
+
+void sendMsgToNotInTheRoom(struct client clnt[], int clnt_num, struct message msg){
+    int i;
+
+    for(i=0; i<clnt_num; i++){
+        if(isInTheGamingRoom(&(clnt[i])) == FALSE){
+            sendMessageUser(msg, &(clnt[i]));
+        }
+    }
 }

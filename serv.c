@@ -54,7 +54,7 @@ void *handle_clnt(void* arg){
         }
         /* client is in the wating room */
         else{
-            handle_clnt_msg_in_waiting(room, &room_num, c, msg);
+            handle_clnt_msg_in_waiting(room, &room_num, clnt, &clnt_num, c, msg);
         }
     }
 }
