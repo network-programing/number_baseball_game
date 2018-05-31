@@ -178,14 +178,19 @@ struct room* makeRoomInstance(int id, char* name){
 int removeRoom(struct room room[], int* room_num, int room_id){
 /* if cannot find room then return -1
     if find room, then return new room_num */
-    int idx, i;
+    int idx, i, j;
 
     idx = findRoom(room, *room_num, room_id);
     if(idx == -1) return -1;
 
     pthread_mutex_lock(&room_lock);
     for(i=idx; i < *room_num-1; i++){
+        (&(room[i+1]))->id = i;
         room[i] = room[i+1];
+        
+        for(j=0; j<room[i].clnt_num; i++){
+            ((struct client*)room[i].clnt[j])->room = &(room[i]);
+        }
     }
     *room_num -= 1;
     pthread_mutex_unlock(&room_lock);

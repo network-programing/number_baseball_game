@@ -17,6 +17,7 @@ void handle_clnt_msg_in_gaming_chatingMode(struct client* clnt, struct message m
 void handle_clnt_msg_in_gaming_selectMode(struct room room[], int* room_num, struct client* clnt, struct message msg){
     char option[40], buf[BUF_SIZE];
     int room_idx, room_id;
+    struct message serv_msg, error_msg = {"error", "write right format\n"};
     struct room* clnt_room;
 
     printf("[%s] send %s\n", clnt->info.name, msg.content);
@@ -26,15 +27,26 @@ void handle_clnt_msg_in_gaming_selectMode(struct room room[], int* room_num, str
     if(strcmp(option, "quit") == 0){
         clnt_room = (struct room*) clnt->room;
         room_id = clnt_room->id;
-        removeClientInRoom(clnt_room, clnt);
 
-        if(room->clnt_num == 0)
+        sprintf(serv_msg.content, "[%s] is exit the [id : %d] [name : %s] room\n", clnt->info.name, room_id, clnt_room->name);
+        sendMessageToRoom(serv_msg ,(struct room*)clnt->room);
+
+        removeClientInRoom(clnt_room, clnt);
+        
+        sendWaitingRoomMenu(clnt);
+
+        if(clnt_room->clnt_num == 0)
         {
             removeRoom(room, room_num, room_id);
             printf("room[ id : %d ] is closed\n", room_id);
+            printf("room num is %d\n", *room_num);
         }
     }else if(strcmp(option, "help") == 0){
         sendGamingRoomMenu(clnt);
+    }
+    //  cannot find option
+    else{
+        sendMessageUser(error_msg, clnt);
     }
 }
 
@@ -116,7 +128,7 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
             return;
         }
 
-        sprintf(serv_msg.content, "[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
+        sprintf(serv_msg.content, "\n[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
         sendMessageToRoom(serv_msg, (struct room*)clnt->room);
 
         sendGamingRoomMenu(clnt);
@@ -144,6 +156,18 @@ void handle_clnt_msg_in_wating_selectMode(struct room room[], int* room_num, str
     //  print option that client can choose in wating room
     else if(strcmp(option, "help") == 0){
         sendWaitingRoomMenu(clnt);
+    }
+    //  user exit
+    else if(strcmp(option, "quit") == 0){
+
+        /* send quit message to user */
+        strcpy(serv_msg.mode, "quit");
+        strcpy(serv_msg.content, "quit");
+        sendMessageUser(serv_msg, clnt);
+
+        strcpy(serv_msg.mode, "select");
+
+        printf("[%s] quit server\n", clnt->info.name);
     }
     //  cannot find option
     else{
