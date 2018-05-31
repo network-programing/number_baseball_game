@@ -39,7 +39,6 @@ void handle_clnt_msg_in_gaming_selectMode(struct room room[], int* room_num, str
         {
             removeRoom(room, room_num, room_id);
             printf("room[ id : %d ] is closed\n", room_id);
-            printf("room num is %d\n", *room_num);
         }
     }else if(strcmp(option, "help") == 0){
         sendGamingRoomMenu(clnt);

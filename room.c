@@ -185,10 +185,11 @@ int removeRoom(struct room room[], int* room_num, int room_id){
 
     pthread_mutex_lock(&room_lock);
     for(i=idx; i < *room_num-1; i++){
+        
         (&(room[i+1]))->id = i;
         room[i] = room[i+1];
-        
-        for(j=0; j<room[i].clnt_num; i++){
+
+        for(j=0; j<room[i].clnt_num; j++){
             ((struct client*)room[i].clnt[j])->room = &(room[i]);
         }
     }
