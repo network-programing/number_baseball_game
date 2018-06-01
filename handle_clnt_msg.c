@@ -55,8 +55,8 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
         sprintf(serv_msg.content, "add %s to friend list\n", buf);
         sendMessageUser(serv_msg, clnt);
     }
-    /* chat someone */
-    else if(strcmp(option, "chat") == 0){
+    /* send someone */
+    else if(strcmp(option, "send") == 0){
         if((num = sscanf(msg.content, "%s %s %s", option, buf, chat_buf)) != 3){
             sendMessageUser(error_msg, clnt);
             return;
@@ -239,8 +239,8 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
         sprintf(serv_msg.content, "add %s to friend list\n", buf);
         sendMessageUser(serv_msg, clnt);
     }
-    /* chat someone */
-    else if(strcmp(option, "chat") == 0){
+    /* send someone */
+    else if(strcmp(option, "send") == 0){
         if((num = sscanf(msg.content, "%s %s %s", option, buf, chat_buf)) != 3){
             sendMessageUser(error_msg, clnt);
             return;
