@@ -248,7 +248,7 @@ void infoToString(struct info info, char* buf){
     sprintf(buf, "[name] : %s, [win] : %d, [lose] : %d", info.name, info.win, info.lose);
     
     if(info.win == 0)
-        strcat(buf, ", [winning rate] : 0 %%");
+        strcat(buf, ", [winning rate] : 0");
     else{
         sprintf(buf2, ", [winning rate] : %.2lf %%", ((double)info.win/(info.win + info.lose) * 100 ));
         strcat(buf, buf2);
@@ -269,4 +269,58 @@ int getClientInfo(struct info info[], int info_num, char* name){
     }
 
     return -1; 
+}
+
+
+
+void sortInfo(struct info info_ary[], struct info sort_ary[], int info_num){
+    int i, j;
+    double winning_rate1, winning_rate2;
+    struct info temp;
+
+    /* copy */
+    for(i=0; i<info_num; i++){
+        sort_ary[i] = info_ary[i];
+    }
+
+    printf("copy finished\n");
+
+    /* sort */
+    for(i=0; i<info_num; i++){
+        for(j=i+1; j<info_num; j++){
+            winning_rate1 = (double)sort_ary[i].win / sort_ary[i].lose;
+            winning_rate2 = (double)sort_ary[j].win / sort_ary[j].lose;
+            if(winning_rate2 > winning_rate1){
+                temp = sort_ary[i];
+                sort_ary[i] = sort_ary[j];
+                sort_ary[j] = temp;
+            }else if(winning_rate2 == winning_rate1){
+                if(sort_ary[j].win > sort_ary[i].win){
+                    temp = sort_ary[i];
+                    sort_ary[i] = sort_ary[j];
+                    sort_ary[j] = temp;
+                }
+            }
+        }
+    }
+
+    printf("sort finishied\n");
+}
+
+
+void rankToString(struct info info_ary[], int info_num, char* buf){
+    struct info sort_ary[100];
+    int i;
+    char buf2[100];
+
+    printf("sort start\n");
+
+    sortInfo(info_ary, sort_ary, info_num);
+
+    sprintf(buf, "---------<Rank>---------\n");
+    for(i=0; i<info_num; i++){
+        infoToString(sort_ary[i], buf2);
+        strcat(buf, buf2);
+        strcat(buf, "\n");
+    }
 }

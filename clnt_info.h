@@ -38,3 +38,5 @@ int addInfo(struct info info_ary[], int* info_num, struct info info);
 void infoToString(struct info info, char* buf);
 
 int updateInfo(struct info info_ary[], int info_num, struct info info);
+
+void rankToString(struct info info_ary[], int info_num, char* buf);

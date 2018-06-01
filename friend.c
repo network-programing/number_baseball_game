@@ -25,7 +25,7 @@ int addFriend(struct info info[], int info_num, struct client* clnt, char* name)
     if(insertFriend(&(clnt->info.f_list), info[idx].name) == -1)
         return -1;
 
-    return 0;
+    return idx;
 }
 
 

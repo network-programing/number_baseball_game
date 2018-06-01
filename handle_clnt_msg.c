@@ -17,9 +17,9 @@ void handle_clnt_msg_in_gaming_chatingMode(struct client* clnt, struct message m
 }
 
 
-void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, struct room room[], int* room_num, struct client* clnt, struct message msg){
+void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, struct client clnt_ary[], int* clnt_num, struct room room[], int* room_num, struct client* clnt, struct message msg){
     char option[40], buf[BUF_SIZE];
-    int room_idx, room_id;
+    int room_idx, room_id, i, num;
     struct message serv_msg, error_msg = {"error", "write right format\n"};
     struct room* clnt_room;
 
@@ -62,11 +62,15 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
             return;
         }
 
-        if(addFriend(info, *info_num, clnt,  buf) == -1)
+        if((i = addFriend(info, *info_num, clnt,  buf)) == -1)
         {
             sprintf(serv_msg.content, "%s is not existed\n", buf);
             sendMessageUser(serv_msg, clnt);
             return;
+        }else{
+            i = findClientWithName(clnt_ary, *clnt_num, info[i].name);
+            sprintf(serv_msg.content, "[%s] add you in friend list\nIf you want to add, then send 'add %s' in select mode", clnt->info.name, clnt->info.name);
+            sendMessageUser(serv_msg, &(clnt_ary[i]));
         }
 
         sprintf(serv_msg.content, "add %s to friend list\n", buf);
@@ -100,7 +104,7 @@ void handle_clnt_msg_in_gaming(struct info info[], int* info_num, struct room ro
 
 
     if(strcmp(msg.mode, "select") == 0){
-        handle_clnt_msg_in_gaming_selectMode(info, info_num, room, room_num, *clnt, msg);
+        handle_clnt_msg_in_gaming_selectMode(info, info_num, clnt_ary, clnt_num, room, room_num, *clnt, msg);
     }
     else if(strcmp(msg.mode, "chat") == 0){
         handle_clnt_msg_in_gaming_chatingMode(*clnt, msg);
@@ -124,7 +128,7 @@ void handle_clnt_msg_in_wating_chatingMode(struct client clnt[], int *clnt_num, 
 void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, struct room room[], int* room_num, struct client clnt_ary[], int* clnt_num, struct client* clnt, struct message msg){
     char option[40], buf[BUF_SIZE];
     struct message serv_msg, error_msg = {"error", "write right format\n"};
-    int room_idx, room_id, num;
+    int room_idx, room_id, num, i;
 
     printf("[%s] send %s\n", clnt->info.name, msg.content);
 
@@ -205,11 +209,15 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
             return;
         }
 
-        if(addFriend(info, *info_num, clnt,  buf) == -1)
+        if((i = addFriend(info, *info_num, clnt,  buf)) == -1)
         {
             sprintf(serv_msg.content, "%s is not existed\n", buf);
             sendMessageUser(serv_msg, clnt);
             return;
+        }else{
+            i = findClientWithName(clnt_ary, *clnt_num, info[i].name);
+            sprintf(serv_msg.content, "[%s] add you in friend list\nIf you want to add, then send 'add %s' in select mode", clnt->info.name, clnt->info.name);
+            sendMessageUser(serv_msg, &(clnt_ary[i]));
         }
 
         sprintf(serv_msg.content, "add %s to friend list\n", buf);
@@ -228,6 +236,11 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
     else if(strcmp(option, "help") == 0){
         sendWaitingRoomMenu(clnt);
     }
+    /* send rank */
+    else if(strcmp(option, "rank") == 0){
+        rankToString(info, *info_num, serv_msg.content);
+        sendMessageUser(serv_msg, clnt);
+    }
     //  user exit
     else if(strcmp(option, "quit") == 0){
 
@@ -239,7 +252,10 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
         strcpy(serv_msg.mode, "select");
 
         printf("[%s] quit server\n", clnt->info.name);
-
+        
+        /* save client info */
+        updateClientInfo(info, *info_num, clnt, clnt->info);
+        
         removeClient(down, clnt_ary, clnt_num, clnt->socket);
     }
     //  cannot find option
