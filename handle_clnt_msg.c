@@ -8,13 +8,16 @@
 #include <stdio.h>
 
 int down[1000];
+int invited[500];
 
+
+void memset_invited(){
+    memset(invited, -1, sizeof(int)*500);
+}
 
 /*  clinet is in the gaming room    */
 void handle_clnt_msg_in_gaming_chatingMode(struct client* clnt, struct message msg){
-    struct message serv_msg;
-    sprintf(serv_msg.content, "[%s] send message : %s\n", clnt->info.name, msg.content);
-    sendMessageToRoom(serv_msg, (struct room*) clnt->room);
+    sendMessageToRoom(msg, (struct room*) clnt->room);
 }
 
 
@@ -33,7 +36,21 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
 
     }
     else if(strcmp(option, "invite") == 0){
+        if((num = sscanf(msg.content, "%s %s", option, buf)) != 2){
+            sendMessageUser(error_msg, clnt);
+            return;
+        }
 
+        i = findClientWithName(clnt_ary, *clnt_num, buf);
+        if(i == -1){
+            sprintf(serv_msg.content, "%s is not connected\n", buf);
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
+        invited[i] = getRoom(clnt)->id;
+        sprintf(serv_msg.content, "%s invite you\nif you want accpet, then type 'yes_invite'\n\n", clnt->info.name);
+        sendMessageUser(serv_msg, &(clnt_ary[i]));
     }
     /* add friend */
     else if(strcmp(option, "f_add") == 0){
@@ -176,9 +193,7 @@ void handle_clnt_msg_in_gaming(struct info info[], int* info_num, struct room ro
 /*  clinet is in the wating room    */
 
 void handle_clnt_msg_in_wating_chatingMode(struct client clnt[], int *clnt_num, struct message msg){
-    struct message serv_msg;
-    sprintf(serv_msg.content, "[%s] send message : %s\n", clnt->info.name, msg.content);
-    sendMsgToNotInTheRoom(clnt, *clnt_num, serv_msg);
+    sendMsgToNotInTheRoom(clnt, *clnt_num, msg);
 }
 
 void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, struct room room[], int* room_num, struct client clnt_ary[], int* clnt_num, struct client* clnt, struct message msg){
@@ -235,7 +250,7 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
             return;
         }
 
-        sprintf(serv_msg.content, "\n[%s] is enter [%s] room!\n\n\n", clnt->info.name, room[room_idx].name);
+        sprintf(serv_msg.content, "\n[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
         sendMessageToRoom(serv_msg, (struct room*)clnt->room);
 
         sendGamingRoomMenu(clnt);
@@ -338,6 +353,33 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
         allConnectClient(clnt_ary, *clnt_num, serv_msg.content);
         strcat(serv_msg.content, "\n");
         sendMessageUser(serv_msg, clnt);
+    }
+    else if(strcmp(option, "yes_invite") == 0){
+        i = findClient(clnt_ary, *clnt_num, clnt->socket);
+        if(invited[i] >= 0){
+
+            room_idx = findRoom(room, *room_num, invited[i]);
+            invited[i] = -1;
+
+            if(room_idx == -1){
+                sprintf(error_msg.content, "%d room not existed\n\n", room_id);
+                sendMessageUser(error_msg, clnt);
+                return;
+            }
+
+            if(addClientToRoom(&(room[room_idx]), clnt) == -1){
+                sprintf(error_msg.content, "%d room is fulled\n\n", room_id);
+                sendMessageUser(error_msg, clnt);
+                return;
+            }
+
+            sprintf(serv_msg.content, "\n[%s] is enter [%s] room!\n\n", clnt->info.name, room[room_idx].name);
+            sendMessageToRoom(serv_msg, (struct room*)clnt->room);
+
+            sendGamingRoomMenu(clnt);
+
+            printf("[clnt %s] is entered [num : %d] [name : %s] room\n", clnt->info.name, room[room_idx].id, room[room_idx].name);
+        }
     }
     //  user exit
     else if(strcmp(option, "quit") == 0){

@@ -119,7 +119,7 @@ void sendGamingRoomMenu(struct client* clnt){
 
 	sprintf(msg.content, "\n<< Gaming Room Menu >>\n");	
     strcat(msg.content, "[start]: start game\n");
-	strcat(msg.content, "[invite] [friend_name]: invite friend\n");
+	strcat(msg.content, "[invite] [name]: invite to game room\n");
     strcat(msg.content, "[f_add] [name] : add friend\n");
     strcat(msg.content, "[f_send] [content] : send message to friends\n");
     strcat(msg.content, "[send] [name] [content] : send message\n");

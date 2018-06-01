@@ -119,6 +119,8 @@ int main(int argc, char* argv[]){
 
 	signal(SIGINT, serverEndControl);
 
+	memset_invited();
+
 	// 계속해서 접속자 받기
 	while(1)
 	{
