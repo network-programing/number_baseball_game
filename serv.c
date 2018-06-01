@@ -125,9 +125,27 @@ int main(int argc, char* argv[]){
 
 		clnt_sock = accept(serv_sock, NULL, NULL);
 
-		read(clnt_sock, &msg, sizeof(struct message));
 
-		strcpy(name, msg.content);
+		do{
+			memset(&msg, 0, sizeof(msg));
+			sprintf(msg.content, "please input your name: ");
+			write(clnt_sock, &msg, sizeof(msg));
+
+			read(clnt_sock, &msg, sizeof(struct message));
+			strcpy(name, msg.content);
+
+			if(findClientWithName(clnt, clnt_num, name) == -1){
+				break;
+			}
+
+			memset(&msg, 0, sizeof(msg));
+			sprintf(msg.content, "%s is already connected\n", name);
+			write(clnt_sock, &msg, sizeof(msg));
+		}while(1);
+
+		memset(&msg, 0, sizeof(msg));
+		sprintf(msg.content, "connected to server");
+		write(clnt_sock, &msg, sizeof(msg));
 
 		new_clnt = addClient(user_info, &info_num, clnt, &clnt_num, clnt_sock, name);
 

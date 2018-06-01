@@ -85,6 +85,10 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
         friendList(info, *info_num, clnt_ary, *clnt_num, clnt, serv_msg.content);
         sendMessageUser(serv_msg, clnt);
     }
+    /* send message to all friends */
+    else if(strcmp(option, "f_send") == 0){
+
+    }
     else if(strcmp(option, "help") == 0){
         sendGamingRoomMenu(clnt);
     }
@@ -282,6 +286,10 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
     else if(strcmp(option, "f_list") == 0){
         friendList(info, *info_num, clnt_ary, *clnt_num, clnt, serv_msg.content);
         sendMessageUser(serv_msg, clnt);
+    }
+    /* send message to all friends */
+    else if(strcmp(option, "f_send") == 0){
+
     }
     //  print option that client can choose in wating room
     else if(strcmp(option, "help") == 0){

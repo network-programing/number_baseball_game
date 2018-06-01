@@ -104,6 +104,7 @@ void sendWaitingRoomMenu(struct client* clnt){
 	strcat(msg.content, "[info] [room_number] : Info Room\n");
     strcat(msg.content, "[add] [name] : add friend\n");
     strcat(msg.content, "[f_list] : list friend list\n");
+    strcat(msg.content, "[f_send] [content] : send message to friends\n");
     strcat(msg.content, "[send] [name] [content] : sned message\n");
     strcat(msg.content, "[rank] : ranking\n");
     strcat(msg.content, "[all] : list of conneted users\n");
@@ -120,6 +121,7 @@ void sendGamingRoomMenu(struct client* clnt){
     strcat(msg.content, "[start]: start game\n");
 	strcat(msg.content, "[invite] [friend_name]: invite friend\n");
     strcat(msg.content, "[add] [name] : add friend\n");
+    strcat(msg.content, "[f_send] [content] : send message to friends\n");
     strcat(msg.content, "[send] [name] [content] : send message\n");
     strcat(msg.content, "[f_list] : list friend list\n");
 	strcat(msg.content, "[help]: print menu\n");
