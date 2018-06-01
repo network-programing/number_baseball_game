@@ -62,9 +62,22 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
             return;
         }
 
+                strcpy(chat_buf, msg.content + strlen(option) + strlen(buf) + 2);
+
+        if(strcmp(buf, clnt->info.name) == 0){
+            sprintf(serv_msg.content, "It is you!\n\n");
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
         sprintf(serv_msg.content, "[%s] send message : %s\n", clnt->info.name, chat_buf);
 
-        i = findClientWithName(clnt_ary, *clnt_num, buf);
+        if((i = findClientWithName(clnt_ary, *clnt_num, buf)) == -1){
+            sprintf(serv_msg.content, "%s user is not connected\n", buf);
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
         sendMessageUser(serv_msg, &(clnt_ary[i]));
     }
     /* list friends */
@@ -145,6 +158,7 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
     char option[40], buf[BUF_SIZE], chat_buf[BUF_SIZE];
     struct message serv_msg, error_msg = {"error", "write right format\n"};
     int room_idx, room_id, num, i;
+    char* ptr;
 
     printf("[%s] send %s\n", clnt->info.name, msg.content);
 
@@ -243,6 +257,14 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
     else if(strcmp(option, "send") == 0){
         if((num = sscanf(msg.content, "%s %s %s", option, buf, chat_buf)) != 3){
             sendMessageUser(error_msg, clnt);
+            return;
+        }
+
+        strcpy(chat_buf, msg.content + strlen(option) + strlen(buf) + 2);
+
+        if(strcmp(buf, clnt->info.name) == 0){
+            sprintf(serv_msg.content, "It is you!\n\n");
+            sendMessageUser(serv_msg, clnt);
             return;
         }
 
