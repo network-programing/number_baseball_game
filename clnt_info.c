@@ -279,17 +279,25 @@ void sortInfo(struct info info_ary[], struct info sort_ary[], int info_num){
     struct info temp;
 
     /* copy */
-    for(i=0; i<info_num; i++){
+    for(i=0; i<info_num || i<50; i++){
         sort_ary[i] = info_ary[i];
     }
 
-    printf("copy finished\n");
 
     /* sort */
-    for(i=0; i<info_num; i++){
+    for(i=0; i<info_num || i<50; i++){
         for(j=i+1; j<info_num; j++){
-            winning_rate1 = (double)sort_ary[i].win / sort_ary[i].lose;
-            winning_rate2 = (double)sort_ary[j].win / sort_ary[j].lose;
+            
+            if(sort_ary[i].win == 0)
+                winning_rate1 = 0;
+            else
+                winning_rate1 = (double)sort_ary[i].win / sort_ary[i].lose;
+            
+            if(sort_ary[j].win == 0)
+                winning_rate2 =0;
+            else
+                winning_rate2 = (double)sort_ary[j].win / sort_ary[j].lose;
+            
             if(winning_rate2 > winning_rate1){
                 temp = sort_ary[i];
                 sort_ary[i] = sort_ary[j];
@@ -303,8 +311,6 @@ void sortInfo(struct info info_ary[], struct info sort_ary[], int info_num){
             }
         }
     }
-
-    printf("sort finishied\n");
 }
 
 
@@ -312,8 +318,6 @@ void rankToString(struct info info_ary[], int info_num, char* buf){
     struct info sort_ary[100];
     int i;
     char buf2[100];
-
-    printf("sort start\n");
 
     sortInfo(info_ary, sort_ary, info_num);
 

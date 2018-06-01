@@ -64,6 +64,34 @@ void *handle_clnt(void* arg){
 }
 
 
+void serverEndControl(int sig){
+	int i;
+	struct message serv_msg;
+	struct client* tm_clnt;
+
+	if(sig == SIGINT){
+		printf("[server] terminate\n");
+
+		for(i=0; i<clnt_num; i++){
+			tm_clnt = &(clnt[i]);
+
+			/* send quit message to user */
+        	strcpy(serv_msg.mode, "quit");
+        	strcpy(serv_msg.content, "quit");
+
+			sendMessageUser(serv_msg, tm_clnt);
+
+        	printf("send quit message [%s]\n", tm_clnt->info.name);
+        
+        	/* save client info */
+        	updateClientInfo(user_info, info_num, tm_clnt, tm_clnt->info);
+		}	
+
+		exit(0);
+	}
+}
+
+
 int main(int argc, char* argv[]){
     int serv_sock, clnt_sock;
 	char name[200];	
@@ -88,6 +116,8 @@ int main(int argc, char* argv[]){
 	/* read user info */
 	readUserInfo(user_info, &info_num);
 	printf("[user info] num is %d\n", info_num);
+
+	signal(SIGINT, serverEndControl);
 
 	// 계속해서 접속자 받기
 	while(1)
