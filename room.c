@@ -102,8 +102,9 @@ void sendWaitingRoomMenu(struct client* clnt){
     strcat(msg.content, "[list]: List Room\n");	
 	strcat(msg.content, "[enter] [room_number]: Enter Room\n");
 	strcat(msg.content, "[info] [room_number] : Info Room\n");
-    strcat(msg.content, "[add] [name] : add friend\n");
+    strcat(msg.content, "[f_add] [name] : add friend\n");
     strcat(msg.content, "[f_list] : list friend list\n");
+    strcat(msg.content, "[f_send] [content] : send message to friends\n");
     strcat(msg.content, "[send] [name] [content] : sned message\n");
     strcat(msg.content, "[rank] : ranking\n");
     strcat(msg.content, "[all] : list of conneted users\n");
@@ -118,8 +119,9 @@ void sendGamingRoomMenu(struct client* clnt){
 
 	sprintf(msg.content, "\n<< Gaming Room Menu >>\n");	
     strcat(msg.content, "[start]: start game\n");
-	strcat(msg.content, "[invite] [friend_name]: invite friend\n");
-    strcat(msg.content, "[add] [name] : add friend\n");
+	strcat(msg.content, "[invite] [name]: invite to game room\n");
+    strcat(msg.content, "[f_add] [name] : add friend\n");
+    strcat(msg.content, "[f_send] [content] : send message to friends\n");
     strcat(msg.content, "[send] [name] [content] : send message\n");
     strcat(msg.content, "[f_list] : list friend list\n");
 	strcat(msg.content, "[help]: print menu\n");
@@ -143,7 +145,10 @@ int specificRoomInfo(struct room* room, char* str){
     int i;
     char buf[BUF_SIZE];
 
-    toStringRoom(room, str);
+    
+    toStringRoom(room, buf);
+    sprintf(str, "----------- room info------------\n");
+    strcat(str, buf);
 
     /* add clients info */
     for(i=0; i<room->clnt_num; i++){
@@ -152,7 +157,6 @@ int specificRoomInfo(struct room* room, char* str){
         strcat(str, "\n");
     }
 
-    strcat(str, "\n\n");
 }
 
 struct client* getClient(struct room* room, int index){

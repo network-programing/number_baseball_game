@@ -60,78 +60,6 @@ int connect_to_server(char *host, int portnum)
 
 
 
-
-/*	서버에게 메시지를 보내는 함수	*/
-void* send_msg(void* arg)
-{
-	int sock = *((int*)arg);
-	struct message msg;
-	int m;
-	char option[20], buf[300], name[100];
-
-	// 접속할 이름 입력
-	printf("이름을 입력하세요.\n");
-	mode_num = 0;
-	strcpy(msg.mode, mode[mode_num]);
-	fgets(msg.content, SIZE_CONTENT, stdin);
-	msg.content[strlen(msg.content)-1] = '\0';
-
-	//이름 서버에게 전달
-	write(sock, &msg, sizeof(struct message));
-	strcpy(name, msg.content);
-	usleep(500000);
-
-	mode_num = 1;	// 처음은 SELECT 모드
-	printf("\n선택모드가 되었습니다.\n선택모드, 채팅모드간 전환하려면 CTRL+C를 입력하세요\n");
-
-	while(1)
-	{
-		usleep(1000000);
-		
-		while(fgets(msg.content, SIZE_CONTENT, stdin) == NULL);
-
-		msg.content[strlen(msg.content)-1] = '\0';		
-		strcpy(msg.mode, mode[mode_num]);
-
-		/* if send mode is chat */
-		if(strcmp(msg.mode, mode[2]) == 0){
-			//if(strcmp(msg.content, "\n"))
-
-			strcpy(buf, msg.content);
-			sprintf(msg.content, "user [%s] : %s", name, buf);
-		}
-
-		write(sock, &msg, sizeof(msg));
-	}
-
-	return NULL;
-}
-
-/*	서버에게서 메시지를 전달 받는 함수	*/
-void* recv_msg(void* arg){
-	int sock = *((int*)arg);
-	struct message msg;
-	int m;
-	char buf[100];
-
-	while(1){
-		usleep(1000000);
-		while(read(sock, &msg, sizeof(msg)) <= 0);
-		/*
-		if(strcmp(msg.content, "end") == 0 || strcmp(msg.content, "End")==0){
-			close(sock);
-			printf("접속을 종료합니다.\n");
-			exit(0);
-		}
-		*/
-
-		fputs(msg.content, stdout);
-	}
-
-	return NULL;
-}
-
-
 void handleUserInput(struct message msg, int sock, char* name){
 	char buf[300];
 	
@@ -169,16 +97,31 @@ void io_handle(int sock){
 	char buf[300], name[50];
 
 
-	// 접속할 이름 입력
-	printf("이름을 입력하세요.\n");
-	mode_num = 0;
-	strcpy(msg.mode, mode[mode_num]);
-	fgets(msg.content, SIZE_CONTENT, stdin);
-	msg.content[strlen(msg.content)-1] = '\0';
+	while(1){
+		// receive server msg;
+		read(sock, &msg, sizeof(msg));
+		write(0, msg.content, strlen(msg.content));
 
-	//이름 서버에게 전달
-	write(sock, &msg, sizeof(struct message));
-	strcpy(name, msg.content);
+		mode_num = 0;
+
+		// 접속할 이름 입력
+		strcpy(msg.mode, mode[mode_num]);
+		fgets(msg.content, SIZE_CONTENT, stdin);
+		msg.content[strlen(msg.content)-1] = '\0';
+
+		//이름 서버에게 전달
+		write(sock, &msg, sizeof(struct message));
+		strcpy(name, msg.content);
+
+		// receive server's accepted msg;
+		read(sock, &msg, sizeof(msg));
+		if(strcmp(msg.content, "connected to server") == 0){
+			break;
+		}
+
+		// not accepted
+		write(0, msg.content, strlen(msg.content));
+	}
 
 	mode_num = 1;	// 처음은 SELECT 모드
 	printf("\n선택모드가 되었습니다.\n선택모드, 채팅모드간 전환하려면 CTRL+C를 입력하세요\n");
