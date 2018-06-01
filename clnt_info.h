@@ -25,6 +25,8 @@ void sendMsgToNotInTheRoom(struct client clnt[], int clnt_num, struct message ms
 
 void updateClientInfo(struct info info_ary[], int info_num, struct client* clnt, struct info info);
 
+void allConnectClient(struct client clnt[], int clnt_num, char* buf);
+
 
 /* info function */
 int readUserInfo(struct info info[], int* info_num);

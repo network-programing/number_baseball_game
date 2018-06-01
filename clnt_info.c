@@ -106,8 +106,9 @@ int findClient(struct client clnt[], int clnt_num, int socket)
 int findClientWithName(struct client clnt[], int clnt_num, char* name){
     int i;
     for(i=0; i<clnt_num; i++){
-        if(strcmp(clnt[i].info.name, name) == 0)
+        if(strcmp(clnt[i].info.name, name) == 0){
             return i;
+        }
     }
 
     return -1;
@@ -181,6 +182,22 @@ void updateClientInfo(struct info info_ary[], int info_num, struct client* clnt,
     updateInfo(info_ary, idx, info);
     clnt->info = info;
     saveClientInfo(clnt);
+}
+
+
+
+void allConnectClient(struct client clnt[], int clnt_num, char* buf){
+    int i;
+    char buf2[200];
+    
+    sprintf(buf, "\n---------<connected user>---------------\n\n");
+    for(i=0; i<clnt_num; i++){
+        infoToString(clnt[i].info, buf2);
+        strcat(buf, buf2);
+        strcat(buf, "\n");
+    }
+
+    strcat(buf, "\n");
 }
 
 
