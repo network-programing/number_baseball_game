@@ -10,6 +10,7 @@
 int down[1000];
 int invited[500];
 
+int room_score[100][MAX_PERSON] = {0};
 
 
 void memset_invited(){
@@ -34,9 +35,12 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
 
     if(strcmp(option, "start") == 0){
         sprintf(serv_msg.mode, "start");
+        sprintf(serv_msg.content, "game");
         sendMessageToRoom(serv_msg, clnt->room);
     }
     else if(strcmp(option, "invite") == 0){
+        sprintf(serv_msg.mode, "common");
+
         if((num = sscanf(msg.content, "%s %s", option, buf)) != 2){
             sendMessageUser(error_msg, clnt);
             return;
@@ -55,6 +59,8 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
     }
     /* add friend */
     else if(strcmp(option, "f_add") == 0){
+        sprintf(serv_msg.mode, "common");
+
         if((num = sscanf(msg.content, "%s %s", option, buf)) != 2){
             sendMessageUser(error_msg, clnt);
             return;
@@ -76,6 +82,8 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
     }
     /* send someone */
     else if(strcmp(option, "send") == 0){
+        sprintf(serv_msg.mode, "common");
+
         if((num = sscanf(msg.content, "%s %s %s", option, buf, chat_buf)) != 3){
             sendMessageUser(error_msg, clnt);
             return;
@@ -101,12 +109,16 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
     }
     /* list friends */
     else if(strcmp(option, "f_list") == 0){
+        sprintf(serv_msg.mode, "common");
+
         friendList(info, *info_num, clnt_ary, *clnt_num, clnt, serv_msg.content);
         strcat(serv_msg.content, "\n");
         sendMessageUser(serv_msg, clnt);
     }
     /* send message to all friends */
     else if(strcmp(option, "f_send") == 0){
+        sprintf(serv_msg.mode, "common");
+
         if((num = sscanf(msg.content, "%s %s", option, buf)) != 2){
             sendMessageUser(error_msg, clnt);
             return;
@@ -118,10 +130,14 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
         sendMessageToFriends(clnt_ary, *clnt_num, clnt, serv_msg);
     }
     else if(strcmp(option, "help") == 0){
+        sprintf(serv_msg.mode, "common");
+
         sendGamingRoomMenu(clnt);
     }
     /* quit gaming room */
     else if(strcmp(option, "quit") == 0){
+        sprintf(serv_msg.mode, "common");
+
         clnt_room = (struct room*) clnt->room;
         room_id = clnt_room->id;
 
@@ -153,13 +169,18 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
     else{
         sendMessageUser(error_msg, clnt);
     }
+
+    printf("serv message [%s] [%s]\n", serv_msg.mode, serv_msg.content);
+
+
 }
 
 
-void handle_in_gaming(struct client *clnt, struct message msg, struct info info[], int info_num){
-     int score, i;
+void handle_in_gaming(struct room room[], int room_num, struct client *clnt, struct message msg, struct info info[], int info_num){
+     int score, i, j, maxi, maxscore = -1, samecount = 0, lower = 98765432;
      struct message serv_msg;
      struct room* clntroom = clnt->room;
+     struct client* winner, * losser;
 
     // single play
     if(clntroom->clnt_num == 1){
@@ -174,17 +195,59 @@ void handle_in_gaming(struct client *clnt, struct message msg, struct info info[
         for(i=0; i<clntroom->clnt_num; i++){
             if(clntroom->clnt[i] != clnt){
                 sendMessageUser(serv_msg, clntroom->clnt[i]);
+            }else{
+                j = findRoom(room, room_num, clntroom->id);
+                printf("j is %d\n", j);
+                room_score[j][i] = score;
+                printf("i score is %d\n", room_score[j][i]);
             }
         }
 
-        /*
+
+        for(i=0; i<clntroom->clnt_num; i++){
             
-            you do clnt score make 
+            /*  if not finished */
+            if(room_score[j][i] == 0)   return;
 
-        */
+            if(maxscore < room_score[j][i]){
+                maxscore = room_score[j][i];
+                maxi = i;
+            }
+        }
 
-        //clnt->info.win ++;
-        //updateClientInfo(info, info_num, clnt, clnt->info);
+
+        if(room_score[j][0] == room_score[j][1]){
+            /*  reset   */
+            for(i=0; i<clntroom->clnt_num; i++){
+                room_score[j][i] = 0;
+            }
+            return;
+        }
+
+
+        /*  update  winner   */
+        winner = clntroom->clnt[maxi];
+        winner->info.win ++;
+        updateClientInfo(info, info_num, winner, winner->info);
+
+        /*  update loser    */
+        if(room_score[j][0] < room_score[j][1])
+            losser = clntroom->clnt[0];
+        else if(room_score[j][0] > room_score[j][1])
+            losser = clntroom->clnt[1];
+
+        printf("losser is %s\n", losser->info.name);
+
+        losser->info.lose++;
+
+        printf("update gogo\n");
+        updateClientInfo(info, info_num, losser, losser->info);
+
+
+        /*  reset   */
+        for(i=0; i<clntroom->clnt_num; i++){
+            room_score[j][i] = 0;
+        }
     }
  }
 
@@ -204,7 +267,7 @@ void handle_clnt_msg_in_gaming(struct info info[], int* info_num, struct room ro
         handle_clnt_msg_in_gaming_chatingMode(*clnt, msg);
     }
     else if(strcmp(msg.mode, "game") == 0){
-        handle_in_gaming(*clnt, msg, info, *info_num);
+        handle_in_gaming(room, *room_num, *clnt, msg, info, *info_num);
     }
     else{
         sendMessageUser(mode_error_msg, *clnt);

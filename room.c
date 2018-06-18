@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 pthread_mutex_t room_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
