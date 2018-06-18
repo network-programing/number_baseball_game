@@ -11,6 +11,7 @@ int down[1000];
 int invited[500];
 
 
+
 void memset_invited(){
     memset(invited, -1, sizeof(int)*500);
 }
@@ -31,9 +32,9 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
 
     sscanf(msg.content, "%s", option);
 
-
     if(strcmp(option, "start") == 0){
-
+        sprintf(serv_msg.mode, "start");
+        sendMessageToRoom(serv_msg, clnt->room);
     }
     else if(strcmp(option, "invite") == 0){
         if((num = sscanf(msg.content, "%s %s", option, buf)) != 2){
@@ -130,8 +131,8 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
         /*
             test
         */
-        clnt->info.win ++;
-        updateClientInfo(info, *info_num, clnt, clnt->info);
+        //clnt->info.win ++;
+        //updateClientInfo(info, *info_num, clnt, clnt->info);
 
 
         /*
@@ -155,6 +156,39 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
 }
 
 
+void handle_in_gaming(struct client *clnt, struct message msg, struct info info[], int info_num){
+     int score, i;
+     struct message serv_msg;
+     struct room* clntroom = clnt->room;
+
+    // single play
+    if(clntroom->clnt_num == 1){
+        sprintf(serv_msg.content, "game over\n\n");
+        sendMessageUser(serv_msg, clnt);
+    }
+    // multi play
+    else{
+        sscanf(msg.content, "%d", &score);
+        sprintf(serv_msg.content,"gamer score is %d\ngame over\n\n", score);
+        
+        for(i=0; i<clntroom->clnt_num; i++){
+            if(clntroom->clnt[i] != clnt){
+                sendMessageUser(serv_msg, clntroom->clnt[i]);
+            }
+        }
+
+        /*
+            
+            you do clnt score make 
+
+        */
+
+        //clnt->info.win ++;
+        //updateClientInfo(info, info_num, clnt, clnt->info);
+    }
+ }
+
+
 void handle_clnt_msg_in_gaming(struct info info[], int* info_num, struct room room[], int* room_num, struct client clnt_ary[], int* clnt_num, struct client** clnt, struct message msg, int* clnt_socket){
     struct message mode_error_msg = {"error", "mode is not matched\n"};
     int i;
@@ -168,6 +202,9 @@ void handle_clnt_msg_in_gaming(struct info info[], int* info_num, struct room ro
     }
     else if(strcmp(msg.mode, "chat") == 0){
         handle_clnt_msg_in_gaming_chatingMode(*clnt, msg);
+    }
+    else if(strcmp(msg.mode, "game") == 0){
+        handle_in_gaming(*clnt, msg, info, *info_num);
     }
     else{
         sendMessageUser(mode_error_msg, *clnt);

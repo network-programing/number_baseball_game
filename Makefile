@@ -1,5 +1,5 @@
-serv_exe : friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o
-	gcc -o serv_exe.o friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o -lpthread
+serv.exe : friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o
+	gcc -o serv.exe friend.o clnt_info.o handle_clnt_msg.o message.o room.o serv_func.o serv.o -lpthread
 
 
 friend.o : friend.c friend.h

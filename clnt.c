@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "message.h"
+#include "snake.h"
 
 #define SIZE_MODE 20
 #define SIZE_CONTENT 200
@@ -95,6 +96,7 @@ void io_handle(int sock){
 	int str_len;
 	struct timeval timeout;
 	char buf[300], name[50];
+	int score;
 
 
 	while(1){
@@ -165,7 +167,20 @@ void io_handle(int sock){
 					break;
 				}
 
-				handleServerMessage(msg);
+				if(strcmp(msg.mode, "start") == 0){
+					printf("Start!!!");
+					score = start();
+					sprintf(msg.mode, "game");
+					sprintf(msg.content, "%d", score);
+					write(sock, &msg, sizeof(msg));
+					
+					read(sock, &msg, sizeof(msg));
+
+					printf("your score is %d\n", score);
+					printf("%s", msg.content);
+				}else{
+					handleServerMessage(msg);
+				}
 			}
 		}
 	}

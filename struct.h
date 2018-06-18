@@ -6,7 +6,7 @@
 
 #define ROOM_IS_START 1001
 #define ROOM_IS_NOT_START 1002
-#define MAX_PERSON 3
+#define MAX_PERSON 2
 
 #define FRIEND_MAX 100
 
