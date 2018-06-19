@@ -169,6 +169,7 @@ void io_handle(int sock){
 
 				if(strcmp(msg.mode, "start") == 0){
 					printf("Start!!!");
+					fflush(stdin);
 					score = start();
 					sprintf(msg.mode, "game");
 					sprintf(msg.content, "%d", score);
