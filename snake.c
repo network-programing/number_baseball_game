@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include "snake.h"
 
 
@@ -81,6 +82,8 @@ struct s_snake *snake_init(void);
 int move_snake(struct s_snake *snake, struct s_food *food);
 
 int game_loop();
+
+void snake_erase(struct s_snake* snake);
 
 #endif // SNAKE_H
 
@@ -164,6 +167,10 @@ struct s_snake *snake_init(void)
     return return_snake;
 }
 
+void snake_erase(struct s_snake* snake){
+    free(snake);
+}
+
 int move_snake(struct s_snake *snake, struct s_food *food)
 {
     int i;
@@ -241,10 +248,18 @@ int move_snake(struct s_snake *snake, struct s_food *food)
     return 0;
 }
 
+
+
+
 int game_loop(){
     int ch, i, food_x, food_y, nextX, nextY, flag = 1;
-    struct s_snake *snake = snake_init();
-    struct s_food *food = food_init();
+    struct s_snake *snake;
+    struct s_food *food;
+    L = 0, R=1, U=0, D=0;
+
+    snake = snake_init();
+    food = food_init();
+
     snake->lenght = 5;
     set_snake_speed(snake, 200);
     timeout(get_snake_speed(snake));
@@ -255,23 +270,27 @@ int game_loop(){
      * O tamanho da snake recebe o valor da váriavel snake_lenght a qual será
      * modificado durante a execução do jogo.
      */
+
+
     snake_lenght = snake->lenght;
     snake_scores = 1;
     for (i = 0; i < snake->lenght; i++)
     {
         snake->body[i].position.x = snake->position.x + i;
         snake->body[i].position.y = snake->position.y;
+        //printf("y: %d x : %d", snake->body[i].position.y, snake->body[i].position.x);
     }
 
     /*
      * Aqui inicia o loop do jogo, que faz com que tudo funcione, este switch
      * e para ler se as setas foram apertadas.
      */
+    flag = 0;
+
     while ((ch = getch()) != 'x')
     {
-
         flag = move_snake(snake, food);
-
+        //printf("flag is %d\n", flag);
         if(flag == -1) break;
 
         if(ch != ERR)
@@ -279,32 +298,41 @@ int game_loop(){
             switch(ch)
             {
             case KEY_UP:
+                /*
                 if (D == 0)
                 {
                     L = 0, D = 0, R = 0,
                     U = 1;
-                }
+                }*/
+                L = 0, D = 0, R = 0, U = 1;
                 break;
             case KEY_DOWN:
+                /*
                 if (U == 0)
                 {
                     L = 0, D = 1, R = 0,
                     U = 0;
-                }
+                }*/
+                L = 0, D = 1, R = 0, U = 0;
                 break;
             case KEY_RIGHT:
+                /*
                 if (L == 0)
                 {
                     L = 0, D = 0, R = 1,
                     U = 0;
                 }
+                */
+               L = 0, D = 0, R = 1,U = 0;
                 break;
             case KEY_LEFT:
+                /*
                 if (R == 0)
                 {
                     L = 1, D = 0, R = 0,
                     U = 0;
-                }
+                }*/
+                L = 1, D = 0, R = 0, U = 0;
                 break;
             default:
                 break;
@@ -312,6 +340,7 @@ int game_loop(){
         }
     }
 
+    snake_erase(snake);
     final_score = snake->lenght;
     return snake->lenght;
 }
@@ -369,8 +398,8 @@ void make_food(struct s_food *food,
     mvwaddch(snake_world, food->position.y, food->position.x, 'x');
 
     if ((snake_head_x == food->position.x) && (snake_head_y == food->position.y)){
-        snake_lenght+=4;
-        snake_scores+=4;
+        snake_lenght+=1;
+        snake_scores+=1;
         set_snake_lenght(snake, snake_lenght);
     }
 }
@@ -459,6 +488,7 @@ void init_game_window()
                          offsetx);
 
     /*Entra no loop do jogo*/
+
     game_loop();
 
     delwin(snake_world);

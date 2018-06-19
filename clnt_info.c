@@ -218,21 +218,20 @@ int readFile(char * fileName, struct info* info){
 int readUserInfo(struct info info[], int* info_num){
     DIR *dir;
     struct dirent *ent;
-    char buf[100], * ptr;  
-    int i = 0;
+    char buf[100];  
+    int i = 0, flag;
 
     dir = opendir(".");
     if(dir == NULL) return -1;
 
     while((ent = readdir(dir)) != NULL){
-        ptr = ent->d_name;
-        while(*ptr != '.') ptr++;
-
-        if(strcmp(ptr, ".bin") == 0){
+        if(strstr(ent->d_name, ".bin")/*strcmp(ptr, ".bin") == 0 && flag*/){
+            //printf("filename is %s\n", ent->d_name);
             readFile(ent->d_name, &(info[i]));
             i++;
         }
     }
+
     closedir(dir);
 
     *info_num = i;
@@ -296,14 +295,14 @@ void sortInfo(struct info info_ary[], struct info sort_ary[], int info_num){
     struct info temp;
 
     /* copy */
-    for(i=0; i<info_num || i<50; i++){
+    for(i=0; i<info_num && i<10; i++){
         sort_ary[i] = info_ary[i];
     }
 
 
     /* sort */
-    for(i=0; i<info_num || i<50; i++){
-        for(j=i+1; j<info_num; j++){
+    for(i=0; i<info_num && i<10; i++){
+        for(j=i+1; j<info_num && i<10; j++){
             
             if(sort_ary[i].win == 0)
                 winning_rate1 = 0;
@@ -336,10 +335,16 @@ void rankToString(struct info info_ary[], int info_num, char* buf){
     int i;
     char buf2[100];
 
+    for(i=0; i<info_num; i++){
+        printf("%d is %s\n", i, info_ary[i].name);
+    }
+
     sortInfo(info_ary, sort_ary, info_num);
 
+    printf("sort finished!\n");
+
     sprintf(buf, "---------<Rank>---------\n");
-    for(i=0; i<info_num; i++){
+    for(i=0; i<info_num && i<10; i++){
         infoToString(sort_ary[i], buf2);
         strcat(buf, buf2);
         strcat(buf, "\n");

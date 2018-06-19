@@ -34,9 +34,12 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
     sscanf(msg.content, "%s", option);
 
     if(strcmp(option, "start") == 0){
+        getRoom(clnt)->status = ROOM_IS_START;
+
         sprintf(serv_msg.mode, "start");
         sprintf(serv_msg.content, "game");
         sendMessageToRoom(serv_msg, clnt->room);
+        
     }
     else if(strcmp(option, "invite") == 0){
         sprintf(serv_msg.mode, "common");
@@ -66,11 +69,30 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
             return;
         }
 
+        /*  it's you    */
+        if(strcmp(buf, clnt->info.name) == 0){
+            sprintf(serv_msg.content, "it is you!\n\n");
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
+
+        /*  check  already friend  */
+        for(i=0; i<clnt->info.f_list.num; i++){
+            if(strcmp(buf, clnt->info.f_list.list[i]) == 0){
+                sprintf(serv_msg.content, "%s is already your friend!\n\n", buf);
+                sendMessageUser(serv_msg, clnt);
+                return;
+            }
+        }
+
+        /*  if not existed  */
         if((i = addFriend(info, *info_num, clnt,  buf)) == -1)
         {
             sprintf(serv_msg.content, "%s is not existed\n\n", buf);
             sendMessageUser(serv_msg, clnt);
             return;
+        /*  add friend  */
         }else{
             i = findClientWithName(clnt_ary, *clnt_num, info[i].name);
             sprintf(serv_msg.content, "[%s] add you in friend list\nIf you want to add, then send 'f_add %s' in select mode\n\n", clnt->info.name, clnt->info.name);
@@ -186,6 +208,10 @@ void handle_in_gaming(struct room room[], int room_num, struct client *clnt, str
     if(clntroom->clnt_num == 1){
         sprintf(serv_msg.content, "game over\n\n");
         sendMessageUser(serv_msg, clnt);
+        
+        /*  room    status change*/
+        getRoom(clnt)->status = ROOM_IS_NOT_START;
+
     }
     // multi play
     else{
@@ -214,6 +240,9 @@ void handle_in_gaming(struct room room[], int room_num, struct client *clnt, str
                 maxi = i;
             }
         }
+
+        /*  room    status change*/
+        getRoom(clnt)->status = ROOM_IS_NOT_START;
 
 
         if(room_score[j][0] == room_score[j][1]){
@@ -382,6 +411,25 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
             sendMessageUser(error_msg, clnt);
             return;
         }
+
+
+        /*  it's you    */
+        if(strcmp(buf, clnt->info.name) == 0){
+            sprintf(serv_msg.content, "it is you!\n\n");
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
+
+        /*  check  already friend  */
+        for(i=0; i<clnt->info.f_list.num; i++){
+            if(strcmp(buf, clnt->info.f_list.list[i]) == 0){
+                sprintf(serv_msg.content, "%s is already your friend!\n\n", buf);
+                sendMessageUser(serv_msg, clnt);
+                return;
+            }
+        }
+
 
         if((i = addFriend(info, *info_num, clnt,  buf)) == -1)
         {
