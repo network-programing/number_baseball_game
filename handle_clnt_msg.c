@@ -49,6 +49,13 @@ void handle_clnt_msg_in_gaming_selectMode(struct info info[], int* info_num, str
             return;
         }
 
+        /*  it's you    */
+        if(strcmp(buf, clnt->info.name) == 0){
+            sprintf(serv_msg.content, "it is you!\n\n");
+            sendMessageUser(serv_msg, clnt);
+            return;
+        }
+
         i = findClientWithName(clnt_ary, *clnt_num, buf);
         if(i == -1){
             sprintf(serv_msg.content, "%s is not connected\n", buf);
@@ -437,13 +444,17 @@ void handle_clnt_msg_in_wating_selectMode(struct info info[], int* info_num, str
             sendMessageUser(serv_msg, clnt);
             return;
         }else{
+            sprintf(serv_msg.content, "add %s to friend list\n\n", buf);
+            sendMessageUser(serv_msg, clnt);
+
+            /*  send to friend about this   */
             i = findClientWithName(clnt_ary, *clnt_num, info[i].name);
+
+            if(i == -1) return;
+
             sprintf(serv_msg.content, "[%s] add you in friend list\nIf you want to add, then send 'f_add %s' in select mode\n\n", clnt->info.name, clnt->info.name);
             sendMessageUser(serv_msg, &(clnt_ary[i]));
         }
-
-        sprintf(serv_msg.content, "add %s to friend list\n\n", buf);
-        sendMessageUser(serv_msg, clnt);
     }
     /* send someone */
     else if(strcmp(option, "send") == 0){

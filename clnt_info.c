@@ -335,13 +335,7 @@ void rankToString(struct info info_ary[], int info_num, char* buf){
     int i;
     char buf2[100];
 
-    for(i=0; i<info_num; i++){
-        printf("%d is %s\n", i, info_ary[i].name);
-    }
-
     sortInfo(info_ary, sort_ary, info_num);
-
-    printf("sort finished!\n");
 
     sprintf(buf, "---------<Rank>---------\n");
     for(i=0; i<info_num && i<10; i++){
