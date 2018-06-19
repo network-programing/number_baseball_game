@@ -295,14 +295,14 @@ void sortInfo(struct info info_ary[], struct info sort_ary[], int info_num){
     struct info temp;
 
     /* copy */
-    for(i=0; i<info_num && i<10; i++){
+    for(i=0; i<info_num; i++){
         sort_ary[i] = info_ary[i];
     }
 
 
     /* sort */
-    for(i=0; i<info_num && i<10; i++){
-        for(j=i+1; j<info_num && i<10; j++){
+    for(i=0; i<info_num; i++){
+        for(j=i+1; j<info_num; j++){
             
             if(sort_ary[i].win == 0)
                 winning_rate1 = 0;
